@@ -25,7 +25,7 @@ class SystemProperties:
         self.frame     = Frame(master.frame)
         self.bframe    = Frame(master.bframe)
 
-        self.advs      = ['None', 'Steady flow', 'Period oscillation']
+        self.advs      = ['None', 'Steady flow', 'Period oscillation', 'Time series file']
         self.bios      = ['None', 'Uniform', 'Depth-dependent']
         self.cons      = ['None', 'Consolidation']
         

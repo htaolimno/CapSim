@@ -282,6 +282,8 @@ class Parameters:
         elif system.adv == 'Steady flow':
             self.U = self.Vdar
             self.tidalsteps = 0
+        elif system.adv == 'Time series file':
+            self.dfflux = system.dfflux
         else:
             self.U = 0
             self.tidalsteps = 0
