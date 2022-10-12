@@ -30,44 +30,8 @@
 import cPickle as pickle, sys, os, warnings
 import _winreg as wreg
 import tkFileDialog as tkfd
-import pandas as pd
-import numpy as np
-import random
 
 from Tkinter import Tk
-
-data = {'datetime' : pd.date_range(start='1/15/2018',
-                                  end='02/14/2018',
-                                  freq='D')\
-                     .append(pd.date_range(start='1/15/2018',
-                                           end='02/14/2018',
-                                           freq='D')),
-        'house' : ['house1' for i in range(31)]
-                  + ['house2' for i in range(31)],
-        'readvalue' : [0.5 + 0.5*np.sin(2*np.pi/30*i)
-                       for i in range(31)]\
-                     + [0.5 + 0.5*np.cos(2*np.pi/30*i)
-                       for i in range(31)]}
-df0 = pd.DataFrame(data, columns = ['datetime',
-                                    'house',
-                                    'readvalue'])
-# Randomly drop half the reads
-random.seed(42)
-df0 = df0.drop(random.sample(range(df0.shape[0]),
-                             k=int(df0.shape[0]/2)))
-
-df = df0.copy()
-df['datetime'] = pd.to_datetime(df['datetime'])
-df.index = df['datetime']
-del df['datetime']
-
-df_interpol = df.groupby('house')\
-                .resample('D')\
-                .mean()
-df_interpol['readvalue'] = df_interpol['readvalue'].interpolate()
-df_interpol.head(4)
-
-
 
 if sys.path[0][-3:] == 'zip': 
     os.chdir(sys.path[0][:-12])
@@ -255,10 +219,6 @@ while(1):
                 system.BCs[chemical.name].kevap     = 0
 
         if system.adv       == 'Tidal oscillation': system.adv = 'Period oscillation'
-
-        if system.adv == 'Time series file':
-            system.dfflux = pd.read_csv(Filepath + r'/input_cpsm_files/goundwaterflux.csv')
-
         if system.topBCtype == 'CSTR water body':   system.topBCtype = 'Finite mixed water column'
         if system.bio       == 'Bioturbation':      system.bio = 'Uniform'
 

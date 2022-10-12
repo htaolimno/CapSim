@@ -154,9 +154,10 @@ class Solver:
             self.parameters.update_time_dependents()
             if cons == 1:
                 self.parameters.update_consolidation(t+self.parameters.delt, self.parameters.Vdar)
-                if tidal == 1: self.parameters.update_tidal(t+self.parameters.delt, self.parameters.U_plus_1)
+                if tidal >= 1: self.parameters.update_tidal(t+self.parameters.delt, self.parameters.U_plus_1)
             else:
-                if tidal == 1: self.parameters.update_tidal(t+self.parameters.delt, self.parameters.Vdar)
+                if tidal >= 1: self.parameters.update_tidal(t+self.parameters.delt, self.parameters.Vdar)
+
 
             if biomix ==1:
                 self.parameters.make_components_matrices()

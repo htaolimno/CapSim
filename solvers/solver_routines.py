@@ -10,6 +10,8 @@
 
 import tkMessageBox as tkmb, cPickle as pickle, sys, os
 import _winreg as wreg
+import pandas as pd
+import numpy as np
 
 if sys.path[0][-3:] == 'zip': 
     os.chdir(sys.path[0][:-12])
@@ -279,11 +281,46 @@ class Parameters:
             self.U          = self.Vdar
             self.Vtidal     = system.Vtidal
             self.ptidal     = system.ptidal
+        elif system.adv == 'Time series file':
+            # HTAO added a time series file option
+
+            self.tidal      = 2
+            self.U = self.Vdar
+
+            # load time series data from a file (*.csv)
+            self.dfflux = pd.read_csv(Filepath + r'/input_cpsm_files/groundwaterflux.csv')
+
+            # For testing only: the following two statements are used to generate a time series data from a sin function
+            # data = {'day': np.arange(0, self.tfinal+0.1, 1.0),
+            #         'flux': [0.1 * np.sin(2 * np.pi / 10 * i)
+            #                  for i in np.arange(0, self.tfinal+0.1, 1.0)],
+            #         'source': 0}
+            # self.dfflux  = pd.DataFrame(data, columns=['day', 'flux'])
+
+            lstDataTimePnts = list(self.dfflux['day'])  # list of day values from time series data
+            lstTimeSteps = list(np.arange(0, self.tfinal+0.1, self.delt))  # list of model time steps
+
+            # remove duplicated time(days) already available from the time series data
+            for e in lstDataTimePnts:
+                if e in lstTimeSteps:
+                    lstTimeSteps.remove(e)
+
+            if len(lstTimeSteps) > 0:
+                data2 = {'day': lstTimeSteps,
+                         'flux': np.nan}
+                df2 = pd.DataFrame(data2, columns=['day', 'flux'])
+
+                df3 = pd.concat([self.dfflux, df2]).sort_values(['day'])
+
+                df3 = df3.set_index('day')
+                # linear interpolate missing flux data
+                df3['flux'] = df3['flux'].interpolate()
+                self.dfflux = df3
+                #self.dfflux.to_csv(r'E:/CapSim/input_cpsm_files/interp3.csv')
+
         elif system.adv == 'Steady flow':
             self.U = self.Vdar
             self.tidalsteps = 0
-        elif system.adv == 'Time series file':
-            self.dfflux = system.dfflux
         else:
             self.U = 0
             self.tidalsteps = 0
@@ -2205,7 +2242,6 @@ class Parameters:
         consolidation in the underlying sediment."""
 
         self.U_plus_1 = U + consolidation(time, self.Vcon0, self.kcon)
-
         self.make_grid_Us()
         self.make_grid_Ds()
 
@@ -2213,7 +2249,12 @@ class Parameters:
         """Updates the Darcy velocity and then the equations if there is
         consolidation in the underlying sediment."""
 
-        self.U_plus_1 = U + tidal(time, self.Vtidal, self.ptidal)
+        if self.tidal ==1:
+            self.U_plus_1 = U + tidal(time, self.Vtidal, self.ptidal)
+        elif self.tidal==2:
+            # calculate the index of row from dataframe and
+            self.U_plus_1 = U + self.dfflux['flux'][time]
+
 
         if self.topBCtype == 'Finite mixed water column':
 
