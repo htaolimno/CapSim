@@ -289,6 +289,7 @@ class Parameters:
 
             # load time series data from a file (*.csv)
             self.dfflux = pd.read_csv(Filepath + r'/input_cpsm_files/groundwaterflux.csv')
+            self.dfflux['source'] = 0
 
             # For testing only: the following two statements are used to generate a time series data from a sin function
             # data = {'day': np.arange(0, self.tfinal+0.1, 1.0),
@@ -301,22 +302,43 @@ class Parameters:
             lstTimeSteps = list(np.arange(0, self.tfinal+0.1, self.delt))  # list of model time steps
 
             # remove duplicated time(days) already available from the time series data
-            for e in lstDataTimePnts:
-                if e in lstTimeSteps:
-                    lstTimeSteps.remove(e)
+            # for e in lstDataTimePnts:
+            #     if e in lstTimeSteps:
+            #         lstTimeSteps.remove(e)
+            #
+            # if len(lstTimeSteps) > 0:
+            #     data2 = {'day': lstTimeSteps,
+            #              'flux': np.nan}
+            #     df2 = pd.DataFrame(data2, columns=['day', 'flux'])
+            #
+            #     df3 = pd.concat([self.dfflux, df2]).sort_values(['day'])
+            #
+            #     df3 = df3.set_index('day')
+            #     # linear interpolate missing flux data
+            #     df3['flux'] = df3['flux'].interpolate()
+            #     self.dfflux = df3
 
-            if len(lstTimeSteps) > 0:
-                data2 = {'day': lstTimeSteps,
-                         'flux': np.nan}
-                df2 = pd.DataFrame(data2, columns=['day', 'flux'])
-
-                df3 = pd.concat([self.dfflux, df2]).sort_values(['day'])
-
-                df3 = df3.set_index('day')
-                # linear interpolate missing flux data
-                df3['flux'] = df3['flux'].interpolate()
-                self.dfflux = df3
                 #self.dfflux.to_csv(r'E:/CapSim/input_cpsm_files/interp3.csv')
+
+            data2 = {'day': np.arange(0, self.tfinal+10, self.delt),
+                     'flux': np.nan,
+                     'source': 1}
+            df2 = pd.DataFrame(data2, columns=['day', 'flux', 'source'])
+
+            for index, row in df2.iterrows():
+                for index2, row2 in self.dfflux.iterrows():
+                    if row['day'] == row2['day']:
+                        df2.at[index, 'flux'] = row2['flux']
+                    elif row['day'] > row2['day']:
+                        break
+
+            df3 = pd.concat([self.dfflux, df2]).sort_values(['day', 'source'])
+            df3 = df3.set_index('day')
+            df3['flux'] = pd.to_numeric(df3['flux'])
+            df3['flux'] = df3['flux'].interpolate()
+            self.dfflux = df3[df3['source'] > 0]
+            self.dfflux.reset_index(inplace=True, drop=True)
+            print self.dfflux
 
         elif system.adv == 'Steady flow':
             self.U = self.Vdar
@@ -2253,8 +2275,8 @@ class Parameters:
             self.U_plus_1 = U + tidal(time, self.Vtidal, self.ptidal)
         elif self.tidal==2:
             # calculate the index of row from dataframe and
-            self.U_plus_1 = U + self.dfflux['flux'][time]
-
+            print time
+            self.U_plus_1 = U + self.dfflux['flux'][round(time/self.delt)]
 
         if self.topBCtype == 'Finite mixed water column':
 
