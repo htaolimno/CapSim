@@ -285,6 +285,7 @@ class Parameters:
             # HTAO added a time series file option
 
             self.tidal      = 2
+            self.Vdar =0
             self.U = 0 #self.Vdar
 
             # load time series data from a file (*.csv)
