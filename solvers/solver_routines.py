@@ -285,7 +285,7 @@ class Parameters:
             # HTAO added a time series file option
 
             self.tidal      = 2
-            self.U = self.Vdar
+            self.U = 0 #self.Vdar
 
             # load time series data from a file (*.csv)
             self.dfflux = pd.read_csv(Filepath + r'/input_cpsm_files/groundwaterflux.csv')
@@ -337,8 +337,10 @@ class Parameters:
             df3['flux'] = pd.to_numeric(df3['flux'])
             df3['flux'] = df3['flux'].interpolate()
             self.dfflux = df3[df3['source'] > 0]
+            self.dfflux.to_csv(r'E:/CapSim/input_cpsm_files/interp3.csv')
             self.dfflux.reset_index(inplace=True, drop=True)
-            print self.dfflux
+            #print self.dfflux
+
 
         elif system.adv == 'Steady flow':
             self.U = self.Vdar
@@ -2275,7 +2277,7 @@ class Parameters:
             self.U_plus_1 = U + tidal(time, self.Vtidal, self.ptidal)
         elif self.tidal==2:
             # calculate the index of row from dataframe and
-            print time
+            #print time
             self.U_plus_1 = U + self.dfflux['flux'][round(time/self.delt)]
 
         if self.topBCtype == 'Finite mixed water column':
