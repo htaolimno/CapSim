@@ -293,13 +293,13 @@ class Parameters:
             self.dfflux['source'] = 0
 
             # For testing only: the following two statements are used to generate a time series data from a sin function
-            # data = {'day': np.arange(0, self.tfinal+0.1, 1.0),
+            # data = {'time': np.arange(0, self.tfinal+0.1, 1.0),
             #         'flux': [0.1 * np.sin(2 * np.pi / 10 * i)
             #                  for i in np.arange(0, self.tfinal+0.1, 1.0)],
             #         'source': 0}
-            # self.dfflux  = pd.DataFrame(data, columns=['day', 'flux'])
+            # self.dfflux  = pd.DataFrame(data, columns=['time', 'flux'])
 
-            lstDataTimePnts = list(self.dfflux['day'])  # list of day values from time series data
+            lstDataTimePnts = list(self.dfflux['time'])  # list of day values from time series data
             lstTimeSteps = list(np.arange(0, self.tfinal+0.1, self.delt))  # list of model time steps
 
             # remove duplicated time(days) already available from the time series data
@@ -308,33 +308,33 @@ class Parameters:
             #         lstTimeSteps.remove(e)
             #
             # if len(lstTimeSteps) > 0:
-            #     data2 = {'day': lstTimeSteps,
+            #     data2 = {'time': lstTimeSteps,
             #              'flux': np.nan}
-            #     df2 = pd.DataFrame(data2, columns=['day', 'flux'])
+            #     df2 = pd.DataFrame(data2, columns=['time', 'flux'])
             #
-            #     df3 = pd.concat([self.dfflux, df2]).sort_values(['day'])
+            #     df3 = pd.concat([self.dfflux, df2]).sort_values(['time'])
             #
-            #     df3 = df3.set_index('day')
+            #     df3 = df3.set_index('time')
             #     # linear interpolate missing flux data
             #     df3['flux'] = df3['flux'].interpolate()
             #     self.dfflux = df3
 
                 #self.dfflux.to_csv(r'E:/CapSim/input_cpsm_files/interp3.csv')
 
-            data2 = {'day': np.arange(0, self.tfinal+10, self.delt),
+            data2 = {'time': np.arange(0, self.tfinal+10, self.delt),
                      'flux': np.nan,
                      'source': 1}
-            df2 = pd.DataFrame(data2, columns=['day', 'flux', 'source'])
+            df2 = pd.DataFrame(data2, columns=['time', 'flux', 'source'])
 
             for index, row in df2.iterrows():
                 for index2, row2 in self.dfflux.iterrows():
-                    if row['day'] == row2['day']:
+                    if row['time'] == row2['time']:
                         df2.at[index, 'flux'] = row2['flux']
-                    elif row['day'] > row2['day']:
+                    elif row['time'] > row2['time']:
                         break
 
-            df3 = pd.concat([self.dfflux, df2]).sort_values(['day', 'source'])
-            df3 = df3.set_index('day')
+            df3 = pd.concat([self.dfflux, df2]).sort_values(['time', 'source'])
+            df3 = df3.set_index('time')
             df3['flux'] = pd.to_numeric(df3['flux'])
             df3['flux'] = df3['flux'].interpolate()
             self.dfflux = df3[df3['source'] > 0]
